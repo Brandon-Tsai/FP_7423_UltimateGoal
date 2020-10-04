@@ -51,36 +51,17 @@ public abstract class AutoBase extends LinearOpMode {
     public DcMotor bl;
     public DcMotor br;
 
-    public Servo twister;
+    private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+    private static final String LABEL_FIRST_ELEMENT = "Quad";
+    private static final String LABEL_SECOND_ELEMENT = "Single";
 
-    Servo pullerLeft;
-    Servo pullerRight;
-
-    public DistanceSensor distanceSensor;
-    public DistanceSensor backLeftDistanceSensor;
-    public ColorSensor colorSensor;
-
-    public float PPR = 560F; //changed ppr for test robot
-    public float diameter = 3F;
+    public float PPR = 280F; //andymark gear ratio 40:1
+    public float diameter = 4F;
     public MyBoschIMU imu;
-
-    DcMotor intakeMotorLeft;
-    DcMotor intakeMotorRight;
-
-    DcMotor slideMotorLeft;
-    DcMotor slideMotorRight;
-
-    protected PositionToImage lastKnownPosition;
 
     public ImageNavigation imageNavigation;
 
-    public int primaryAngle;
-
-    public int skystonePosition = 0;
-
     public void initialize() {
-        lastKnownPosition = new PositionToImage(); //instantiate this first
-
         fl = hardwareMap.dcMotor.get("frontleft");
         fr = hardwareMap.dcMotor.get("frontright");
         bl = hardwareMap.dcMotor.get("backleft");
@@ -92,44 +73,6 @@ public abstract class AutoBase extends LinearOpMode {
 
         imu = new MyBoschIMU(hardwareMap);
         imu.initialize(new BNO055IMU.Parameters());
-
-        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
-        backLeftDistanceSensor = hardwareMap.get(DistanceSensor.class, "backLeftDistanceSensor");
-        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
-
-        intakeMotorLeft = hardwareMap.dcMotor.get("intaketh1");
-        intakeMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intakeMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        intakeMotorRight = hardwareMap.dcMotor.get("intaketh2");
-        intakeMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        intakeMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        intakeMotorLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        slideMotorLeft = hardwareMap.dcMotor.get("slideMotorLeft");
-        slideMotorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideMotorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        slideMotorRight = hardwareMap.dcMotor.get("slideMotorRight");
-        slideMotorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideMotorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        primaryAngle = (int)imu.myIMU.getAngularOrientation().firstAngle;
-
-        pullerLeft = hardwareMap.servo.get("pullerLeft");
-        ServoControllerEx pullerLeftController = (ServoControllerEx) pullerLeft.getController();
-        int pullerLeftServoPort = pullerLeft.getPortNumber();
-        PwmControl.PwmRange pullerLeftPwmRange = new PwmControl.PwmRange(899, 1300);
-        pullerLeftController.setServoPwmRange(pullerLeftServoPort, pullerLeftPwmRange);
-        pullerLeft.setPosition(0);
-
-        pullerRight = hardwareMap.servo.get("pullerRight");
-        ServoControllerEx pullerRightController = (ServoControllerEx) pullerRight.getController();
-        int pullerRightServoPort = pullerRight.getPortNumber();
-        PwmControl.PwmRange pullerRightPwmRange = new PwmControl.PwmRange(1680, 2105);
-        pullerRightController.setServoPwmRange(pullerRightServoPort, pullerRightPwmRange);
-        pullerRight.setPosition(1);
     }
 
     private float Max(float x1, float x2, float x3, float x4) {
@@ -148,127 +91,6 @@ public abstract class AutoBase extends LinearOpMode {
             m = x4;
 
         return m;
-    }
-
-    public float aquireStoneTarget() {
-        VuforiaTrackableDefaultListener imageListener = (VuforiaTrackableDefaultListener) imageNavigation.stoneTarget.getListener();
-
-
-        if (imageListener.isVisible()) {
-            OpenGLMatrix pos = imageListener.getPose();
-            float d = pos.getColumn(3).get(2);
-            telemetry.addData("Distance:", "%f", d);
-            Orientation orientation = Orientation.getOrientation(pos, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-            OpenGLMatrix rotationMatrix = OpenGLMatrix.rotation(AxesReference.EXTRINSIC, AxesOrder.ZXZ, AngleUnit.DEGREES, orientation.thirdAngle * -1, orientation.firstAngle * -1, 0);
-            OpenGLMatrix adjustedPose = pos.multiplied(rotationMatrix);
-            Orientation adjustedOrientation = Orientation.getOrientation(adjustedPose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-            telemetry.addData("Angle: ", "x = %f, y = %f, z = %f", adjustedOrientation.firstAngle, adjustedOrientation.secondAngle, adjustedOrientation.thirdAngle);
-
-            return d;
-        }
-        return 0;
-    }
-
-    public double getObstacleDistance() {
-        if (distanceSensor != null) {
-            double d = distanceSensor.getDistance(DistanceUnit.INCH);
-            telemetry.addData("Obstacle Distance: ", "%f", d);
-            return d;
-        }
-        else
-            return -1;
-    }
-
-    public double StrafeUntilDistance(float power, Direction direction, float safetyDistance, float robotStartingAngle, MyBoschIMU imu) {
-        float robotCurrentAngle;
-        double d = distanceSensor.getDistance(DistanceUnit.INCH);
-
-        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //reset encoder
-        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        float flPower, frPower, blPower, brPower;
-        float angleModify = Math.abs(power);
-        float actualPower = Math.abs(power);
-        if (direction == Direction.LEFT)
-            actualPower = -(power);
-
-
-        while (d > safetyDistance) {
-            robotCurrentAngle = imu.getAngularOrientation().firstAngle;
-            if (direction == Direction.LEFT)
-            {
-                if (robotCurrentAngle - robotStartingAngle >= 3) // 3 degrees or more
-                {
-                    flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower;
-                    blPower = -actualPower - angleModify;
-                    brPower = actualPower + angleModify;
-                }
-                else if (robotCurrentAngle - robotStartingAngle <= -3) // -3 degrees or more
-                {
-                    flPower = actualPower + angleModify; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower - angleModify;
-                    blPower = -actualPower;
-                    brPower = actualPower;
-                }
-                else
-                {
-                    flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower;
-                    blPower = -actualPower;
-                    brPower = actualPower;
-                }
-            }
-            else if(direction == Direction.RIGHT)
-            {
-                if (robotCurrentAngle - robotStartingAngle >= 3) // 3 degrees or more
-                {
-                    flPower = actualPower + angleModify; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower - angleModify;
-                    blPower = -actualPower;
-                    brPower = actualPower;
-                }
-                else if (robotCurrentAngle - robotStartingAngle <= -3) // -3 degrees or more
-                {
-                    flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower;
-                    blPower = -actualPower - angleModify;
-                    brPower = actualPower + angleModify;
-                }
-                else
-                {
-                    flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                    frPower = -actualPower;
-                    blPower = -actualPower;
-                    brPower = actualPower;
-                }
-            }
-            else
-            {
-                flPower = 0;
-                frPower = 0;
-                blPower = 0;
-                brPower = 0;
-            }
-
-            float max = Max(flPower, frPower, blPower, brPower);
-
-            if (max < 1)
-                max = 1; //By setting max to 1, the fl, fr, bl and br power would be the power we intended to use; and none of these are over 1 because max is less than 1
-
-            fl.setPower(flPower / max);
-            fr.setPower(frPower / max);
-            bl.setPower(blPower / max);
-            br.setPower(brPower / max);
-
-            d = distanceSensor.getDistance(DistanceUnit.INCH);
-
-            telemetry.addData("Obstacle Distance: ", "%f", d);
-            telemetry.update();
-        }
-        StopAll();
-        double driveDistance = br.getCurrentPosition();
-        return driveDistance;
     }
 
     public void StopAll() {
@@ -497,124 +319,6 @@ public abstract class AutoBase extends LinearOpMode {
         return distance;
     }
 
-    public boolean StrafeToImage(float power, VuforiaTrackable imageTarget, LinearOpMode opMode, double stopDistance) {
-
-        stopDistance = stopDistance * 25.4;
-
-        VuforiaTrackableDefaultListener imageListener = (VuforiaTrackableDefaultListener) imageTarget.getListener();
-
-        float actualPower = power;
-
-        if (imageListener.isVisible()) {
-            OpenGLMatrix pos = imageListener.getPose();
-            float d = pos.getColumn(3).get(2); //distance to the image in millimeter;
-            float x = pos.getColumn(3).get(1);
-            float additionalpower = 0;
-
-            lastKnownPosition.translation = pos.getTranslation();
-
-            Log.i("[phoenix]", String.format("distanceImage (before loop) = %10.2f", d));
-
-            Boolean tooCloseToObstacle = false;
-            int distanceLimit = 8;
-            double distanceToObstacle = getObstacleDistance();
-            if (distanceToObstacle < distanceLimit && distanceToObstacle > 0)
-                tooCloseToObstacle = true;
-
-            while ((Math.abs(d) >= stopDistance) && !tooCloseToObstacle && (imageListener.isVisible()) && opMode.opModeIsActive()) {
-
-                pos = ((VuforiaTrackableDefaultListener) imageTarget.getListener()).getPose();
-                d = pos.getColumn(3).get(2); //distance to the image in millimeter;
-                x = -1 * pos.getColumn(3).get(1);
-
-                Log.i("[phoenix]", String.format("distanceImage = %10.2f", d));
-
-                Orientation orientation = Orientation.getOrientation(pos, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-
-                OpenGLMatrix rotationMatrix = OpenGLMatrix.rotation(AxesReference.EXTRINSIC, AxesOrder.ZXZ, AngleUnit.DEGREES, orientation.thirdAngle * -1, orientation.firstAngle * -1, 0);
-                OpenGLMatrix adjustedPose = pos.multiplied(rotationMatrix);
-                Orientation adjustedOrientation = Orientation.getOrientation(adjustedPose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-                opMode.telemetry.addData("Angle: ", "x = %f, y = %f, z = %f", adjustedOrientation.firstAngle, adjustedOrientation.secondAngle, adjustedOrientation.thirdAngle);
-
-                //Keep track the last known location
-                lastKnownPosition.translation = pos.getTranslation();
-                lastKnownPosition.orientation = adjustedOrientation;
-
-                d = lastKnownPosition.translation.get(2);
-                x = lastKnownPosition.translation.get(1) * -1;
-
-                opMode.telemetry.addData("x: ", "x = %f", x);
-
-                float distanceAdjustment = Math.abs(d);
-                if (distanceAdjustment > 1200F)
-                    distanceAdjustment = 1200F;
-                else if (distanceAdjustment < 700F)
-                    distanceAdjustment = 0;
-
-                if (x > 50) {
-                    additionalpower = actualPower * 0.5F * (Math.abs(x) / 150F) * ((1200F - distanceAdjustment) / 1200F);
-                } else if (x < -50) {
-                    additionalpower = actualPower * -0.5F * (Math.abs(x) / 150F) * ((1200F - distanceAdjustment) / 1200F);
-                }
-
-                float flTurnAdjust = 0;
-                float blTurnAdjust = 0;
-                float currentAngle = imu.getAngularOrientation().firstAngle;
-
-                float angleDiff = currentAngle - primaryAngle;
-
-
-                if (angleDiff < -3) {
-                    flTurnAdjust = actualPower * -2F;
-                } else if (angleDiff > 3) {
-                    blTurnAdjust = actualPower * 2F;
-                }
-
-                float flPower, frPower, blPower, brPower;
-
-                flPower = actualPower + additionalpower + flTurnAdjust;
-                frPower = -actualPower + additionalpower;
-                blPower = -actualPower + additionalpower + blTurnAdjust;
-                brPower = actualPower + additionalpower;
-
-                float max = Max(flPower, frPower, blPower, brPower);
-
-                if (max < 1)
-                    max = 1; //By setting max to 1, the fl, fr, bl and br power would be the power we intended to use; and none of these are over 1 because max is less than 1
-
-                fl.setPower(flPower / max);
-                fr.setPower(frPower / max);
-                bl.setPower(blPower / max);
-                br.setPower(brPower / max);
-                Log.i("[phoenix:StrafeToImage]", String.format("x = %f, d = %f, addpower = %f, actpower = %f, distadj = %f", x, d, additionalpower, actualPower, distanceAdjustment));
-                Log.i("[phoenix:StrafeToImage]", String.format("angleDiff = %5.2f, currentAngle = %5.2f, flTurnAdjust = %5.4f, blTurnAdjust = %5.4f", angleDiff, currentAngle, flTurnAdjust, blTurnAdjust));
-
-                //                Log.i("[phoenix:StrafeToImage]", String.format("adj x=%f, y=%f, z=%f, flTurnAdjust=%f, blTurnAdjust=%f", adjustedOrientation.firstAngle, adjustedOrientation.secondAngle, adjustedOrientation.thirdAngle, flTurnAdjust, blTurnAdjust));
-                opMode.telemetry.update();
-
-                if (distanceToObstacle < distanceLimit && distanceToObstacle > 0)
-                    tooCloseToObstacle = true;
-            }
-
-        }
-        else {
-            return false;
-        }
-        StopAll();
-        opMode.telemetry.update();
-        return true;
-    }
-
-    public boolean detectSkystoneByColor() {
-
-        if (colorSensor.green() < 400) {
-            telemetry.addData("gotgreen:", "oh yes");
-            return true;
-        }
-        telemetry.addData("gotgreen:", "not really");
-        return false;
-    }
-
     public void DriveToCoordinate(float x, float y) {
         double frPower = 0;
         double flPower = 0;
@@ -682,83 +386,6 @@ public abstract class AutoBase extends LinearOpMode {
         fr.setPower(0);
         bl.setPower(0);
         br.setPower(0);
-    }
-
-    public double DriveUntilDistance(float power, Direction direction, float safetyDistance, float robotStartingAngle, MyBoschIMU imu) {
-        float robotCurrentAngle;
-        double d = backLeftDistanceSensor.getDistance(DistanceUnit.INCH);
-
-        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //reset encoder
-        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        float flPower, frPower, blPower, brPower;
-        float angleModify = Math.abs(power);
-        float actualPower = Math.abs(power);
-
-
-        while (d > safetyDistance) {
-            robotCurrentAngle = imu.getAngularOrientation().firstAngle;
-            if (robotCurrentAngle - robotStartingAngle >= 3) // 3 degrees or more
-            {
-                flPower = actualPower + angleModify; //when strafe to left, actual power is negative, but power remains positive.
-                frPower = actualPower;
-                blPower = actualPower;
-                brPower = actualPower;
-            }
-            else if (robotCurrentAngle - robotStartingAngle <= -3) // -3 degrees or more
-            {
-                flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                frPower = actualPower + angleModify;
-                blPower = actualPower;
-                brPower = actualPower;
-            }
-            else
-            {
-                flPower = actualPower; //when strafe to left, actual power is negative, but power remains positive.
-                frPower = actualPower;
-                blPower = actualPower;
-                brPower = actualPower;
-            }
-            float max = Max(flPower, frPower, blPower, brPower);
-
-            if (max < 1)
-                max = 1; //By setting max to 1, the fl, fr, bl and br power would be the power we intended to use; and none of these are over 1 because max is less than 1
-
-            fl.setPower(flPower / max);
-            fr.setPower(frPower / max);
-            bl.setPower(blPower / max);
-            br.setPower(brPower / max);
-
-            d = backLeftDistanceSensor.getDistance(DistanceUnit.INCH);
-
-            telemetry.addData("Obstacle Distance: ", "%f", d);
-            telemetry.update();
-        }
-        StopAll();
-        double driveDistance = br.getCurrentPosition();
-        return driveDistance;
-    }
-
-    public float getSkystoneXPosition(VuforiaTrackable imageTarget) {
-        float x = 0;
-        VuforiaTrackableDefaultListener imageListener = (VuforiaTrackableDefaultListener) imageTarget.getListener();
-        if (imageListener.isVisible()) {
-            OpenGLMatrix pos = imageListener.getPose();
-            lastKnownPosition.translation = pos.getTranslation();
-            x = lastKnownPosition.translation.get(1) / 25.4F;
-        }
-        return x;
-    }
-
-    public void releaseStone(){
-        intakeMotorLeft.setPower(-1);
-        intakeMotorRight.setPower(-1);
-
-        this.sleep(300);
-
-        intakeMotorLeft.setPower(0);
-        intakeMotorRight.setPower(0);
-
     }
 }
 

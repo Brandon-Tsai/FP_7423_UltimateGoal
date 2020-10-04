@@ -7,6 +7,7 @@ import com.vuforia.CameraDevice;
 import com.vuforia.HINT;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -77,6 +78,8 @@ public class ImageNavigation
     HardwareMap hardwareMap;
     LinearOpMode opMode;
 
+    WebcamName webcamName;
+
     public ImageNavigation(HardwareMap h, LinearOpMode op)
     {
         hardwareMap = h;
@@ -87,6 +90,7 @@ public class ImageNavigation
 
     public void init()
     {
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
         com.vuforia.Vuforia VU = new com.vuforia.Vuforia();
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -96,90 +100,22 @@ public class ImageNavigation
         param.vuforiaLicenseKey = "AbYPrgD/////AAAAGbvKMH3NcEVFmPLgunQe4K0d1ZQi+afRLxricyooCq+sgY9Yh1j+bBrd0CdDCcoieA6trLCKBzymC515+Ps/FECtXv3+CTW6fg3/3+nvKZ6QA18h/cNZHg5HYHmghlcCgVUmSzOLRvdOpbS4S+0Y/sWGXwFK0PbuGPSN82w8XPDBoRYSWjAf8GXeitmNSlm9n4swrMoYNpMDuWCDjSm1kWnoErjFA9NuNoFzAgO+C/rYzoYjTJRk40ETVcAsahzatRlP7PJCvNNXiBhE6iVR+x7lFlTZ841xifOIOPkfVc54olC5XYe4A5ZmQ6WFD03W5HHdQrnmKPmkgcr1yqXAJ3rLTK8FZK3KVgbxz3Eeqps0";
         //param.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         param.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        param.cameraName = webcamName; // set camera to webcam
         com.vuforia.Vuforia.setHint(HINT.HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 13);
 
         vuforia = ClassFactory.getInstance().createVuforia(param);
 
-        targetsSkyStone = this.vuforia.loadTrackablesFromAsset("Skystone");
-        targetsSkyStone.activate();
-
-        stoneTarget = targetsSkyStone.get(0);
-        stoneTarget.setName("skystone");
-        redRearBridge = targetsSkyStone.get(1);
-        redRearBridge.setName("redRearBridge");
-        blueRearBridge = targetsSkyStone.get(2);
-        blueRearBridge.setName("blueRearBridge");
-        redFrontBridge = targetsSkyStone.get(3);
-        redFrontBridge.setName("redFrontBridge");
-        blueFrontBridge = targetsSkyStone.get(4);
-        blueFrontBridge.setName("blueFrontBridge");
-        red1 = targetsSkyStone.get(5);
-        red1.setName("red1");
-        red2 = targetsSkyStone.get(6);
-        red2.setName("red2");
-        front1 = targetsSkyStone.get(7);
-        front1.setName("front1");
-        front2 = targetsSkyStone.get(8);
-        front2.setName("front2");
-        blue1 = targetsSkyStone.get(9);
-        blue1.setName("blue1");
-        blue2 = targetsSkyStone.get(10);
-        blue2.setName("blue2");
-        rear1 = targetsSkyStone.get(11);
-        rear1.setName("rear1");
-        rear2 = targetsSkyStone.get(12);
-        rear2.setName("rear2");
-
-
-
-        blueFrontBridge.setLocation(OpenGLMatrix
-                .translation(-bridgeX, bridgeY, bridgeZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, bridgeRotY, bridgeRotZ)));
-
-        blueRearBridge.setLocation(OpenGLMatrix
-                .translation(-bridgeX, bridgeY, bridgeZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, -bridgeRotY, bridgeRotZ)));
-
-        redFrontBridge.setLocation(OpenGLMatrix
-                .translation(-bridgeX, -bridgeY, bridgeZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, -bridgeRotY, 0)));
-
-        redRearBridge.setLocation(OpenGLMatrix
-                .translation(bridgeX, -bridgeY, bridgeZ)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 0, bridgeRotY, 0)));
-
-        //Set the position of the perimeter targets with relation to origin (center of field)
-        red1.setLocation(OpenGLMatrix
-                .translation(quadField, -halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-
-        red2.setLocation(OpenGLMatrix
-                .translation(-quadField, -halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-
-        front1.setLocation(OpenGLMatrix
-                .translation(-halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-
-        front2.setLocation(OpenGLMatrix
-                .translation(-halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-
-        blue1.setLocation(OpenGLMatrix
-                .translation(-quadField, halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-
-        blue2.setLocation(OpenGLMatrix
-                .translation(quadField, halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-
-        rear1.setLocation(OpenGLMatrix
-                .translation(halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-
-        rear2.setLocation(OpenGLMatrix
-                .translation(halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
+        VuforiaTrackables targetsUltimateGoal = this.vuforia.loadTrackablesFromAsset("UltimateGoal");
+        VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
+        blueTowerGoalTarget.setName("Blue Tower Goal Target");
+        VuforiaTrackable redTowerGoalTarget = targetsUltimateGoal.get(1);
+        redTowerGoalTarget.setName("Red Tower Goal Target");
+        VuforiaTrackable redAllianceTarget = targetsUltimateGoal.get(2);
+        redAllianceTarget.setName("Red Alliance Target");
+        VuforiaTrackable blueAllianceTarget = targetsUltimateGoal.get(3);
+        blueAllianceTarget.setName("Blue Alliance Target");
+        VuforiaTrackable frontWallTarget = targetsUltimateGoal.get(4);
+        frontWallTarget.setName("Front Wall Target");
 
         phoneLocationOnRobot = OpenGLMatrix
                 .translation(142 / 2, 0, 0)
@@ -199,39 +135,9 @@ public class ImageNavigation
         int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minimumConfidence = 0.8;
+        tfodParameters.minResultConfidence = 0.8f;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
-    }
-
-    public float getSkystoneLocationByTf() {
-        if (tfod != null) {
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-                // step through the list of recognitions and display boundary info.
-                int i = 0;
-                for (Recognition recognition : updatedRecognitions) {
-                    if (recognition.getLabel().equals(LABEL_FIRST_ELEMENT)) {
-                        opMode.telemetry.addData("Location: ", String.format("left=%10.2f;  right=%10.2f", recognition.getLeft(), recognition.getRight()));
-                        return recognition.getLeft();
-                    }
-                }
-            }
-        }
-        return -99999;
-    }
-
-    public VectorF getSkyStoneLocation()
-    {
-        VuforiaTrackableDefaultListener stoneListener = (VuforiaTrackableDefaultListener) stoneTarget.getListener();
-
-        if(stoneListener.isVisible())
-        {
-            OpenGLMatrix stonePosition = stoneListener.getPose();
-
-            return stonePosition.getTranslation();
-        }
-        return null;
     }
 
     public OpenGLMatrix getRobotLocation()
