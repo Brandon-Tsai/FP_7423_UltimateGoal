@@ -18,12 +18,18 @@ public class ImageTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        long runTime = System.currentTimeMillis();
 
         imageNavigation = new ImageNavigation(hardwareMap, this);
 
         waitForStart();
 
         while(opModeIsActive()){
+
+            if(System.currentTimeMillis() - runTime > 100){
+                this.telemetry.clearAll();
+                runTime = System.currentTimeMillis();
+            }
             imageNavigation.getRobotLocation();
         }
     }

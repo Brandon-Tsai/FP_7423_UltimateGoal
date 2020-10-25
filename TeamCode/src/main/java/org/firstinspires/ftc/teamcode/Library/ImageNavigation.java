@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Library;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.vuforia.CameraDevice;
@@ -118,10 +120,10 @@ public class ImageNavigation
 
 
         camLocationOnRobot = OpenGLMatrix
-                .translation(142 / 2, 0, 0)
+                .translation(0, 0, 0)
                 .multiplied(Orientation.getRotationMatrix(
-                        AxesReference.EXTRINSIC, AxesOrder.YZX,
-                        AngleUnit.DEGREES, 0, 0, 90));
+                        AxesReference.EXTRINSIC, AxesOrder.XYZ,
+                        AngleUnit.DEGREES, -90, 0, 0));
 
         //Set the position of the perimeter targets with relation to origin (center of field)
         redAllianceTarget.setLocation(OpenGLMatrix
@@ -167,7 +169,7 @@ public class ImageNavigation
         allTrackables.addAll(targetsUltimateGoal);
         OpenGLMatrix lastLocation = null;
 
-        while (opMode.opModeIsActive()) {
+        if (opMode.opModeIsActive()) {
 
             for (VuforiaTrackable trackable : allTrackables) {
                 if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
@@ -178,7 +180,7 @@ public class ImageNavigation
 
                     if (robotLocationTransform != null) {
                         opMode.telemetry.addData("Phoenix XY: ", robotLocationTransform.getColumn(3).get(0) / 25.4f + " " + robotLocationTransform.getColumn(3).get(1) / 25.4f);
-
+                        Log.i("Phoenix XY:", robotLocationTransform.getColumn(3).get(0) / 25.4f + "  " + robotLocationTransform.getColumn(3).get(1) / 25.4f);
                         return robotLocationTransform;
                     }
                 }
