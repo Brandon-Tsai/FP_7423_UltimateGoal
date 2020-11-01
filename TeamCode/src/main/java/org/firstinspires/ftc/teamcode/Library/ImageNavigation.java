@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.Library;
 
+import android.sax.StartElementListener;
 import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.vuforia.CameraDevice;
 import com.vuforia.HINT;
@@ -18,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.ArrayList;
@@ -48,10 +51,10 @@ public class ImageNavigation
     VuforiaTrackables targetsUltimateGoal;
 
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
-    private static final String LABEL_FIRST_ELEMENT = "Quad";
-    private static final String LABEL_SECOND_ELEMENT = "Single";
+    private static final String LABEL_QUAD_ELEMENT = "Quad";
+    private static final String LABEL_SINGLE_ELEMENT = "Single";
 
-    private TFObjectDetector tfod;
+    public TFObjectDetector tfod;
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
     // We will define some constants and conversions here
@@ -160,7 +163,7 @@ public class ImageNavigation
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
         tfodParameters.minResultConfidence = 0.8f;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, LABEL_SECOND_ELEMENT);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_QUAD_ELEMENT, LABEL_SINGLE_ELEMENT);
     }
 
     public OpenGLMatrix getRobotLocation()
@@ -189,5 +192,32 @@ public class ImageNavigation
             opMode.telemetry.update();
         }
         return null;
+    }
+
+    public int getRingStack(OpMode opMode) {
+        if (tfod != null) {
+            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+            if (updatedRecognitions != null) {
+                opMode.telemetry.addData("# Object Detected", updatedRecognitions.size());
+                int i = 0;
+                for (Recognition recognition : updatedRecognitions) {
+                    Log.i("Phoenix XY:", recognition.getLabel());
+                    if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
+                        opMode.telemetry.addData(String.format("label (%d)", i), "Quad");
+                        return 4;
+                    } else if (recognition.getLabel().equals(LABEL_SINGLE_ELEMENT)) {
+                        opMode.telemetry.addData(String.format("label (%d)", i), "Single");
+                        return 1;
+                    }
+                    opMode.telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            recognition.getLeft(), recognition.getTop());
+                    opMode.telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                            recognition.getRight(), recognition.getBottom());
+                }
+                return 0;
+            }
+            return 0;
+        }
+        return 0;
     }
 }

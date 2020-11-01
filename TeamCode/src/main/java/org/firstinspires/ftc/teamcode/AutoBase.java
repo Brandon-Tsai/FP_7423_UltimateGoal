@@ -52,27 +52,32 @@ public abstract class AutoBase extends LinearOpMode {
     public DcMotor br;
 
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
-    private static final String LABEL_FIRST_ELEMENT = "Quad";
-    private static final String LABEL_SECOND_ELEMENT = "Single";
+    public static final String LABEL_QUAD = "Quad";
+    public static final String LABEL_SINGLE = "Single";
 
     public float PPR = 280F; //andymark gear ratio 40:1
     public float diameter = 4F;
     public MyBoschIMU imu;
 
     public ImageNavigation imageNavigation;
+    public int ringType;
+
+    public void AutoBase() {
+
+    }
 
     public void initialize() {
-        fl = hardwareMap.dcMotor.get("frontleft");
-        fr = hardwareMap.dcMotor.get("frontright");
-        bl = hardwareMap.dcMotor.get("backleft");
-        br = hardwareMap.dcMotor.get("backright");
-        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-        bl.setDirection(DcMotorSimple.Direction.REVERSE);
+//        fl = hardwareMap.dcMotor.get("frontleft");
+//        fr = hardwareMap.dcMotor.get("frontright");
+//        bl = hardwareMap.dcMotor.get("backleft");
+//        br = hardwareMap.dcMotor.get("backright");
+//        fl.setDirection(DcMotorSimple.Direction.REVERSE);
+//        bl.setDirection(DcMotorSimple.Direction.REVERSE);
 
         imageNavigation = new ImageNavigation(hardwareMap, this);
 
-        imu = new MyBoschIMU(hardwareMap);
-        imu.initialize(new BNO055IMU.Parameters());
+//        imu = new MyBoschIMU(hardwareMap);
+//        imu.initialize(new BNO055IMU.Parameters());
     }
 
     private float Max(float x1, float x2, float x3, float x4) {
@@ -386,6 +391,36 @@ public abstract class AutoBase extends LinearOpMode {
         fr.setPower(0);
         bl.setPower(0);
         br.setPower(0);
+    }
+
+    public int getRingType() {
+        if (imageNavigation.tfod != null) {
+            List<Recognition> updatedRecognitions = imageNavigation.tfod.getUpdatedRecognitions();
+            if (updatedRecognitions != null) {
+                telemetry.addData("# Object Detected", updatedRecognitions.size());
+                int i = 0;
+                for (Recognition recognition : updatedRecognitions) {
+                    Log.i("Phoenix XY:", recognition.getLabel());
+                    if (recognition.getLabel().equals(LABEL_QUAD)) {
+                        telemetry.addData(String.format("label (%d)", i), "Quad");
+                        ringType = 4;
+                        return 4;
+                    } else if (recognition.getLabel().equals(LABEL_SINGLE)) {
+                        telemetry.addData(String.format("label (%d)", i), "Single");
+                        ringType = 1;
+                        return 1;
+                    }
+                    telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            recognition.getLeft(), recognition.getTop());
+                    telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                            recognition.getRight(), recognition.getBottom());
+                }
+            }
+            ringType = 0;
+            return 0;
+        }
+        ringType = 0;
+        return 0;
     }
 }
 
