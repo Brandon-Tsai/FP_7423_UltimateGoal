@@ -395,7 +395,7 @@ public abstract class AutoBase extends LinearOpMode {
 
     public int getRingType() {
         if (imageNavigation.tfod != null) {
-            List<Recognition> updatedRecognitions = imageNavigation.tfod.getUpdatedRecognitions();
+            List<Recognition> updatedRecognitions = imageNavigation.tfod.getRecognitions();
             if (updatedRecognitions != null) {
                 telemetry.addData("# Object Detected", updatedRecognitions.size());
                 int i = 0;
