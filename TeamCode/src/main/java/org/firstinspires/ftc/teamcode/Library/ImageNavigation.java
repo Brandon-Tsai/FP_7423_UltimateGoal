@@ -86,8 +86,6 @@ public class ImageNavigation
     {
         hardwareMap = h;
         opMode = op;
-
-        init();
     }
 
     public void init()
@@ -192,5 +190,39 @@ public class ImageNavigation
             opMode.telemetry.update();
         }
         return null;
+    }
+
+    public int getRingStack(OpMode opMode) {
+        if (tfod != null) {
+            List<Recognition> recognitions = tfod.getRecognitions();
+            if (recognitions != null) {
+                int i = 0;
+                for (Recognition recognition : recognitions) {
+                    if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
+                        opMode.telemetry.addData(String.format("label (%d)", i), "Quad");
+                        Log.i("[Phoenix]:","Quad");
+                        return 4;
+                    } else if (recognition.getLabel().equals(LABEL_SINGLE_ELEMENT)) {
+                        opMode.telemetry.addData(String.format("label (%d)", i), "Single");
+                        Log.i("[Phoenix]:","Single");
+                        return 1;
+                    }
+                    opMode.telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
+                            recognition.getLeft(), recognition.getTop());
+                    opMode.telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
+                            recognition.getRight(), recognition.getBottom());
+                }
+                if (recognitions.size() != 0)
+                    Log.i("[Phoenix]:","Unrecognized label");
+                else
+                    Log.i("[Phoenix]:","no label detected");
+                return 0;
+            }
+
+            Log.i("[Phoenix]:","no recognition object");
+            return 0;
+        }
+        Log.i("[Phoenix]:","no tfod");
+        return 0;
     }
 }

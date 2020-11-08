@@ -23,18 +23,20 @@ public class ImageTest extends AutoBase {
         long runTime = System.currentTimeMillis();
 
         initialize();
+        imageNavigation.init();
 
         waitForStart();
 
         while(opModeIsActive()){
-
             if(System.currentTimeMillis() - runTime > 100){
                 this.telemetry.clearAll();
                 runTime = System.currentTimeMillis();
             }
-//            imageNavigation.getRobotLocation();
+            imageNavigation.getRobotLocation();
 
-            telemetry.addData("stackCount:",  getRingStack());
+            int t = imageNavigation.getRingStack(this);
+            telemetry.addData("stackCount:",  t);
+
             telemetry.update();
         }
     }
