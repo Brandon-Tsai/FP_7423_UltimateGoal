@@ -193,31 +193,4 @@ public class ImageNavigation
         }
         return null;
     }
-
-    public int getRingStack(OpMode opMode) {
-        if (tfod != null) {
-            List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-                opMode.telemetry.addData("# Object Detected", updatedRecognitions.size());
-                int i = 0;
-                for (Recognition recognition : updatedRecognitions) {
-                    Log.i("Phoenix XY:", recognition.getLabel());
-                    if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
-                        opMode.telemetry.addData(String.format("label (%d)", i), "Quad");
-                        return 4;
-                    } else if (recognition.getLabel().equals(LABEL_SINGLE_ELEMENT)) {
-                        opMode.telemetry.addData(String.format("label (%d)", i), "Single");
-                        return 1;
-                    }
-                    opMode.telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
-                            recognition.getLeft(), recognition.getTop());
-                    opMode.telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-                            recognition.getRight(), recognition.getBottom());
-                }
-                return 0;
-            }
-            return 0;
-        }
-        return 0;
-    }
 }

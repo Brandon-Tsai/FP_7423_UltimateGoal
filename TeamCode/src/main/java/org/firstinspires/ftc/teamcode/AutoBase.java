@@ -60,7 +60,6 @@ public abstract class AutoBase extends LinearOpMode {
     public MyBoschIMU imu;
 
     public ImageNavigation imageNavigation;
-    public int ringType;
 
     public void AutoBase() {
 
@@ -393,21 +392,19 @@ public abstract class AutoBase extends LinearOpMode {
         br.setPower(0);
     }
 
-    public int getRingType() {
+    public int getRingStack() {
         if (imageNavigation.tfod != null) {
-            List<Recognition> updatedRecognitions = imageNavigation.tfod.getUpdatedRecognitions();
-            if (updatedRecognitions != null) {
-                telemetry.addData("# Object Detected", updatedRecognitions.size());
+            List<Recognition> recognitions = imageNavigation.tfod.getRecognitions();
+            if (recognitions != null) {
+                telemetry.addData("# Object Detected", recognitions.size());
                 int i = 0;
-                for (Recognition recognition : updatedRecognitions) {
+                for (Recognition recognition : recognitions) {
                     Log.i("Phoenix XY:", recognition.getLabel());
                     if (recognition.getLabel().equals(LABEL_QUAD)) {
                         telemetry.addData(String.format("label (%d)", i), "Quad");
-                        ringType = 4;
                         return 4;
                     } else if (recognition.getLabel().equals(LABEL_SINGLE)) {
                         telemetry.addData(String.format("label (%d)", i), "Single");
-                        ringType = 1;
                         return 1;
                     }
                     telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
@@ -416,10 +413,8 @@ public abstract class AutoBase extends LinearOpMode {
                             recognition.getRight(), recognition.getBottom());
                 }
             }
-            ringType = 0;
             return 0;
         }
-        ringType = 0;
         return 0;
     }
 }
