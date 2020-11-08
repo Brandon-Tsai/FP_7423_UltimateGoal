@@ -159,7 +159,7 @@ public class ImageNavigation
         int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
                 "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfodParameters.minResultConfidence = 0.8f;
+        tfodParameters.minResultConfidence = 0.6f;
         tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_QUAD_ELEMENT, LABEL_SINGLE_ELEMENT);
     }
@@ -198,31 +198,40 @@ public class ImageNavigation
             if (recognitions != null) {
                 int i = 0;
                 for (Recognition recognition : recognitions) {
-                    if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
-                        opMode.telemetry.addData(String.format("label (%d)", i), "Quad");
-                        Log.i("[Phoenix]:","Quad");
-                        return 4;
-                    } else if (recognition.getLabel().equals(LABEL_SINGLE_ELEMENT)) {
-                        opMode.telemetry.addData(String.format("label (%d)", i), "Single");
-                        Log.i("[Phoenix]:","Single");
-                        return 1;
+                    float width = recognition.getRight() - recognition.getLeft();
+                    opMode.telemetry.addData(String.format("  left,right,width (%d)", i), "%f , %f, %f",
+                            recognition.getLeft(), recognition.getRight(), width);
+
+                    float height = recognition.getTop() - recognition.getBottom();
+                    opMode.telemetry.addData(String.format("  top,bottom,height (%d)", i), "%f , %f, %f",
+                            recognition.getTop(), recognition.getBottom(), height);
+
+                    if (width >= 110 && width <= 160) {
+                        if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
+                            opMode.telemetry.addData(String.format("label (%d)", i), "Quad");
+                            Log.i("[Phoenix]:", "Quad");
+                            return 4;
+                        } else if (recognition.getLabel().equals(LABEL_SINGLE_ELEMENT)) {
+                            opMode.telemetry.addData(String.format("label (%d)", i), "Single");
+                            Log.i("[Phoenix]:", "Single");
+                            return 1;
+                        }
                     }
-                    opMode.telemetry.addData(String.format("  left,top (%d)", i), "%.03f , %.03f",
-                            recognition.getLeft(), recognition.getTop());
+
                     opMode.telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
                             recognition.getRight(), recognition.getBottom());
                 }
                 if (recognitions.size() != 0)
-                    Log.i("[Phoenix]:","Unrecognized label");
+                    opMode.telemetry.addData("[Phoenix]:","Unrecognized label");
                 else
-                    Log.i("[Phoenix]:","no label detected");
+                    opMode.telemetry.addData("[Phoenix]:","no label detected");
                 return 0;
             }
 
-            Log.i("[Phoenix]:","no recognition object");
+            opMode.telemetry.addData("[Phoenix]:","no recognition object");
             return 0;
         }
-        Log.i("[Phoenix]:","no tfod");
+        opMode.telemetry.addData("[Phoenix]:","no tfod");
         return 0;
     }
 }

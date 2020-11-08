@@ -55,8 +55,8 @@ public abstract class AutoBase extends LinearOpMode {
     public static final String LABEL_QUAD = "Quad";
     public static final String LABEL_SINGLE = "Single";
 
-    public float PPR = 280F; //andymark gear ratio 40:1
-    public float diameter = 4F;
+    public float PPR = 560F; //andymark gear ratio 40:1 (previously 280)
+    public float diameter = 3F; //changed for 3 inch wheel testing
     public MyBoschIMU imu;
 
     public ImageNavigation imageNavigation;
@@ -67,17 +67,17 @@ public abstract class AutoBase extends LinearOpMode {
     }
 
     public void initialize() {
-//        fl = hardwareMap.dcMotor.get("frontleft");
-//        fr = hardwareMap.dcMotor.get("frontright");
-//        bl = hardwareMap.dcMotor.get("backleft");
-//        br = hardwareMap.dcMotor.get("backright");
-//        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-//        bl.setDirection(DcMotorSimple.Direction.REVERSE);
+        fl = hardwareMap.dcMotor.get("frontleft");
+        fr = hardwareMap.dcMotor.get("frontright");
+        bl = hardwareMap.dcMotor.get("backleft");
+        br = hardwareMap.dcMotor.get("backright");
+        fl.setDirection(DcMotorSimple.Direction.REVERSE);
+        bl.setDirection(DcMotorSimple.Direction.REVERSE);
 
         imageNavigation = new ImageNavigation(hardwareMap, this);
 
-//        imu = new MyBoschIMU(hardwareMap);
-//        imu.initialize(new BNO055IMU.Parameters());
+        imu = new MyBoschIMU(hardwareMap);
+        imu.initialize(new BNO055IMU.Parameters());
     }
 
     private float Max(float x1, float x2, float x3, float x4) {
