@@ -305,6 +305,42 @@ public abstract class AutoBase extends LinearOpMode {
         }
         StopAll();
     }
+    public void StrafeDiagonal(float power, Direction d){
+        float frontLeftPower = 0;
+        float frontRightPower = 0;
+        float backLeftPower = 0;
+        float backRightPower = 0;
+
+        switch(d){
+            case FORWARDRIGHT:
+                frontLeftPower = power;
+                backRightPower = power;
+                break;
+            case FORWARDLEFT:
+                frontRightPower = power;
+                backLeftPower = power;
+                break;
+            case BACKWARDRIGHT:
+                frontRightPower = -power;
+                backLeftPower = -power;
+                break;
+            case BACKWARDLEFT:
+                frontLeftPower = -power;
+                backRightPower = -power;
+                break;
+        }
+        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        while(Math.abs(br.getCurrentPosition()) < 4000){
+            fl.setPower(frontLeftPower);
+            fr.setPower(frontRightPower);
+            bl.setPower(backLeftPower);
+            br.setPower(backRightPower);
+        }
+
+        StopAll();
+    }
 
     public void resetAllEncoders() {
         fr.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

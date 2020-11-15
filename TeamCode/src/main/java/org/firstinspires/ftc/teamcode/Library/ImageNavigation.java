@@ -193,18 +193,18 @@ public class ImageNavigation
     }
 
     public int getRingStack(OpMode opMode) {
+        Log.i("[Phoenix]:", String.format("Tfod null:%b", tfod == null));
         if (tfod != null) {
             List<Recognition> recognitions = tfod.getRecognitions();
+
+            Log.i("[Phoenix]:", String.format("Recognitions null:%b", recognitions == null));
             if (recognitions != null) {
                 int i = 0;
+                Log.i("[Phoenix]:", String.format("Recognitions length %d", recognitions.size()));
                 for (Recognition recognition : recognitions) {
                     float width = recognition.getRight() - recognition.getLeft();
-                    opMode.telemetry.addData(String.format("  left,right,width (%d)", i), "%f , %f, %f",
-                            recognition.getLeft(), recognition.getRight(), width);
-
                     float height = recognition.getTop() - recognition.getBottom();
-                    opMode.telemetry.addData(String.format("  top,bottom,height (%d)", i), "%f , %f, %f",
-                            recognition.getTop(), recognition.getBottom(), height);
+                    Log.i("[Phoenix]:", String.format("left=%f, top=%f, height=%f, width=%f", recognition.getLeft(), recognition.getTop(), height, width ));
 
                     if (width >= 110 && width <= 160) {
                         if (recognition.getLabel().equals(LABEL_QUAD_ELEMENT)) {
@@ -218,8 +218,6 @@ public class ImageNavigation
                         }
                     }
 
-                    opMode.telemetry.addData(String.format("  right,bottom (%d)", i), "%.03f , %.03f",
-                            recognition.getRight(), recognition.getBottom());
                 }
                 if (recognitions.size() != 0)
                     opMode.telemetry.addData("[Phoenix]:","Unrecognized label");
@@ -228,9 +226,12 @@ public class ImageNavigation
                 return 0;
             }
 
+            Log.i("[Phoenix]:", "no recognition");
             opMode.telemetry.addData("[Phoenix]:","no recognition object");
             return 0;
         }
+
+        Log.i("[Phoenix]:", "no tfod");
         opMode.telemetry.addData("[Phoenix]:","no tfod");
         return 0;
     }

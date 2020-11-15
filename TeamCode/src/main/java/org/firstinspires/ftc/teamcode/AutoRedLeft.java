@@ -10,7 +10,7 @@ public class AutoRedLeft extends AutoBase {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        long runTime = System.currentTimeMillis();
+
         int ringType = 0;
 
         initialize();
@@ -18,6 +18,7 @@ public class AutoRedLeft extends AutoBase {
 
         waitForStart();
 
+        long runTime = System.currentTimeMillis();
         while(System.currentTimeMillis() - runTime < 500){
             ringType = imageNavigation.getRingStack(this);
             telemetry.addData("stackCount:",  ringType);
@@ -28,22 +29,21 @@ public class AutoRedLeft extends AutoBase {
 
         switch (ringType) {
             case 0:
-                telemetry.addLine("Going to 0");
                 Strafe(0.6f, 12, Direction.RIGHT);
-                Drive(0.6f, 66, Direction.FORWARD);
+                Drive(0.6f, 56, Direction.FORWARD);
                 break;
             case 1:
-                telemetry.addLine("Going to 1");
                 Strafe(0.6f, 12, Direction.RIGHT);
-                Drive(0.6f, 90, Direction.FORWARD);
+                Drive(0.6f, 80, Direction.FORWARD);
                 Strafe(0.6f, 12, Direction.LEFT);
                 break;
             case 4:
-                telemetry.addLine("Going to 4");
                 Strafe(0.6f, 12, Direction.RIGHT);
-                Drive(0.6f, 114, Direction.FORWARD);
+                Drive(0.6f, 105, Direction.FORWARD);
                 break;
         }
+
+        StrafeDiagonal(0.8f, Direction.BACKWARDLEFT);
         telemetry.update();
     }
 }

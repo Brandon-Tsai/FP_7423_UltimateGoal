@@ -7,5 +7,9 @@ public enum Direction {
     LEFT,
     CLOCKWISE,
     COUNTERCLOCKWISE,
+    FORWARDLEFT,
+    FORWARDRIGHT,
+    BACKWARDLEFT,
+    BACKWARDRIGHT,
     NONE
 }
