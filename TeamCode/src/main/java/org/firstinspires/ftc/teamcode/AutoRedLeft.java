@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Log;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
@@ -43,7 +45,15 @@ public class AutoRedLeft extends AutoBase {
                 break;
         }
 
-        StrafeDiagonal(0.8f, Direction.BACKWARDLEFT);
+        Log.i("[phoenix:arrive]", "Hola");
+
+        imageNavigation.getRobotLocation();
+
+        sleep(1000);
+        Log.i("[phoenix:startStrafe]", "Start Strafe");
+
+        StrafeDiagonal(0.8f, Direction.BACKWARDLEFT, -6, -14);
+
         telemetry.update();
     }
 }

@@ -305,7 +305,7 @@ public abstract class AutoBase extends LinearOpMode {
         }
         StopAll();
     }
-    public void StrafeDiagonal(float power, Direction d){
+    public void StrafeDiagonal(float power, Direction d, float targetX, float targetY){
         float frontLeftPower = 0;
         float frontRightPower = 0;
         float backLeftPower = 0;
@@ -315,28 +315,76 @@ public abstract class AutoBase extends LinearOpMode {
             case FORWARDRIGHT:
                 frontLeftPower = power;
                 backRightPower = power;
+                frontRightPower = -power / 2f;
+                backLeftPower = -power / 2f;
                 break;
             case FORWARDLEFT:
                 frontRightPower = power;
                 backLeftPower = power;
+                frontLeftPower = -power / 2f;
+                backRightPower = -power / 2f;
                 break;
             case BACKWARDRIGHT:
                 frontRightPower = -power;
                 backLeftPower = -power;
+                frontLeftPower = power / 2f;
+                backRightPower = power / 2f;
                 break;
             case BACKWARDLEFT:
                 frontLeftPower = -power;
                 backRightPower = -power;
+                frontRightPower = power / 2f;
+                backLeftPower = power / 2f;
                 break;
         }
+
         br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        while(Math.abs(br.getCurrentPosition()) < 4000){
-            fl.setPower(frontLeftPower);
-            fr.setPower(frontRightPower);
-            bl.setPower(backLeftPower);
-            br.setPower(backRightPower);
+        float startingAngle = imu.getAngularOrientation().firstAngle;
+        float angleModify = Math.abs(power) / 2f;
+
+        while(Math.abs(br.getCurrentPosition()) < 8000){
+            OpenGLMatrix location = imageNavigation.getRobotLocation();
+
+            if(location != null){
+                float currentX = location.getColumn(3).get(0) / 25.4f;
+                float currentY = location.getColumn(3).get(1) / 25.4f;
+
+                if(currentY >= targetY){
+                    break;
+                }
+            }
+            else{
+                Log.i("[phoenix:stopSeeing]", "Stopped Seeing Image");
+            }
+
+            //Log.i("[phoenix:imuDiagonal]", String.format("StartingAngle:%f, CurrentAngle:%f, AngleDifference:%f", startingAngle, imu.getAngularOrientation().firstAngle, imu.getAngularOrientation().firstAngle - startingAngle));
+
+            float currentAngle = imu.getAngularOrientation().firstAngle;
+            float flPower = frontLeftPower;
+            float frPower = frontRightPower;
+            float blPower = backLeftPower;
+            float brPower = backRightPower;
+
+            if (currentAngle - startingAngle >= 2){
+                flPower += angleModify;
+                frPower -= angleModify;
+            }
+            else if(currentAngle - startingAngle <= -2){
+                blPower -= angleModify;
+                brPower += angleModify;
+            }
+
+            float max = Max(flPower, frPower, blPower, brPower);
+
+            if (max < 1)
+                max = 1;
+
+            fl.setPower(flPower / max);
+            fr.setPower(frPower / max);
+            bl.setPower(blPower / max);
+            br.setPower(brPower / max);
         }
 
         StopAll();

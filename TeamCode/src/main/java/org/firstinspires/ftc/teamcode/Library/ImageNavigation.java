@@ -181,7 +181,7 @@ public class ImageNavigation
 
                     if (robotLocationTransform != null) {
                         opMode.telemetry.addData("Phoenix XY: ", robotLocationTransform.getColumn(3).get(0) / 25.4f + " " + robotLocationTransform.getColumn(3).get(1) / 25.4f);
-                        Log.i("Phoenix XY:", robotLocationTransform.getColumn(3).get(0) / 25.4f + "  " + robotLocationTransform.getColumn(3).get(1) / 25.4f);
+                        Log.i("[phoenix XY:]", robotLocationTransform.getColumn(3).get(0) / 25.4f + "  " + robotLocationTransform.getColumn(3).get(1) / 25.4f);
                         return robotLocationTransform;
                     }
                 }
