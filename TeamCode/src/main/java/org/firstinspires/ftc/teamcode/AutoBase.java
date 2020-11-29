@@ -34,6 +34,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.teamcode.Direction;
 import org.firstinspires.ftc.teamcode.Library.ImageNavigation;
 import org.firstinspires.ftc.teamcode.Library.MyBoschIMU;
+import org.firstinspires.ftc.teamcode.MyClass.FieldDirection;
 import org.firstinspires.ftc.teamcode.MyClass.PositionToImage;
 import org.firstinspires.ftc.teamcode.MyClass.SkystonePosition;
 
@@ -305,38 +306,11 @@ public abstract class AutoBase extends LinearOpMode {
         }
         StopAll();
     }
-    public void StrafeDiagonal(float power, Direction d, float targetX, float targetY){
+    public void StrafeTo(float power, Direction d, float targetX, float targetY){
         float frontLeftPower = 0;
         float frontRightPower = 0;
         float backLeftPower = 0;
         float backRightPower = 0;
-
-        switch(d){
-            case FORWARDRIGHT:
-                frontLeftPower = power;
-                backRightPower = power;
-                frontRightPower = -power / 2f;
-                backLeftPower = -power / 2f;
-                break;
-            case FORWARDLEFT:
-                frontRightPower = power;
-                backLeftPower = power;
-                frontLeftPower = -power / 2f;
-                backRightPower = -power / 2f;
-                break;
-            case BACKWARDRIGHT:
-                frontRightPower = -power;
-                backLeftPower = -power;
-                frontLeftPower = power / 2f;
-                backRightPower = power / 2f;
-                break;
-            case BACKWARDLEFT:
-                frontLeftPower = -power;
-                backRightPower = -power;
-                frontRightPower = power / 2f;
-                backLeftPower = power / 2f;
-                break;
-        }
 
         br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -344,19 +318,94 @@ public abstract class AutoBase extends LinearOpMode {
         float startingAngle = imu.getAngularOrientation().firstAngle;
         float angleModify = Math.abs(power) / 2f;
 
-        while(Math.abs(br.getCurrentPosition()) < 8000){
+        float powerFactor = 0.33333333f;
+        while(Math.abs(br.getCurrentPosition()) < 8000 && opModeIsActive()){
             OpenGLMatrix location = imageNavigation.getRobotLocation();
 
             if(location != null){
                 float currentX = location.getColumn(3).get(0) / 25.4f;
                 float currentY = location.getColumn(3).get(1) / 25.4f;
 
-                if(currentY >= targetY){
-                    break;
+                float deltaX = currentX - targetX;
+                float deltaY = currentY - targetY;
+                float ratio = Math.abs(deltaX/deltaY);
+                powerFactor = Math.abs((1f-0.5f*ratio)/(0.5f*ratio+1f));
+
+                float angle = imu.getAngularOrientation().firstAngle;
+                FieldDirection robotFacingDirection = FieldDirection.EAST;
+                if (angle > -45f && angle < 45f)
+                    robotFacingDirection = FieldDirection.EAST;
+                else if (angle <= -45f && angle > - 135f)
+                    robotFacingDirection = FieldDirection.SOUTH;
+                else if (angle >= 45f && angle < 135f)
+                    robotFacingDirection = FieldDirection.NORTH;
+                else
+                    robotFacingDirection = FieldDirection.WEST;
+
+                Log.i("[phoenix:getDirection]", String.format("Direction:%s, FacingDirection:%s, currentX:%f, currentY:%f", d.toString(), robotFacingDirection.toString(), currentX, currentY));
+
+                if(d == Direction.FORWARDRIGHT){
+
                 }
+                else if(d == Direction.FORWARDLEFT){
+                    if(robotFacingDirection == FieldDirection.EAST && currentY >= targetY && currentX >= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.WEST && currentY <= targetY && currentX <= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && currentY >= targetY && currentX <= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && currentY <= targetY && currentX >= targetX){
+                        break;
+                    }
+                }
+                else if(d == Direction.BACKWARDRIGHT){
+                    if(currentY >= targetY && currentX <= targetX){
+                        break;
+                    }
+                }
+                else if(d == Direction.BACKWARDLEFT){
+                    if(robotFacingDirection == FieldDirection.EAST && currentY >= targetY && currentX <= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.WEST && currentY <= targetY && currentX >= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && currentY <= targetY && currentX <= targetX){
+                        break;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && currentY >= targetY && currentX >= targetX){
+                        break;
+                    }
+                }
+
+
             }
             else{
                 Log.i("[phoenix:stopSeeing]", "Stopped Seeing Image");
+            }
+
+            switch(d){
+                case FORWARDRIGHT:
+                    frontLeftPower = power;
+                    backRightPower = power;
+                    frontRightPower = -power * powerFactor;
+                    backLeftPower = -power * powerFactor;
+                    break;
+                case FORWARDLEFT:
+                    frontRightPower = power;
+                    backLeftPower = power;
+                    frontLeftPower = -power * powerFactor;
+                    backRightPower = -power * powerFactor;
+                    break;
+                case BACKWARDRIGHT:
+                    frontRightPower = -power;
+                    backLeftPower = -power;
+                    frontLeftPower = power * powerFactor;
+                    backRightPower = power * powerFactor;
+                    break;
+                case BACKWARDLEFT:
+                    frontLeftPower = -power;
+                    backRightPower = -power;
+                    frontRightPower = power * powerFactor;
+                    backLeftPower = power * powerFactor;
+                    break;
             }
 
             //Log.i("[phoenix:imuDiagonal]", String.format("StartingAngle:%f, CurrentAngle:%f, AngleDifference:%f", startingAngle, imu.getAngularOrientation().firstAngle, imu.getAngularOrientation().firstAngle - startingAngle));
