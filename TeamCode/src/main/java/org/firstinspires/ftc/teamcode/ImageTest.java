@@ -23,7 +23,7 @@ public class ImageTest extends AutoBase {
         long runTime = System.currentTimeMillis();
 
         initialize();
-        imageNavigation.init();
+        imageNavigation.init(false);
 
         waitForStart();
 

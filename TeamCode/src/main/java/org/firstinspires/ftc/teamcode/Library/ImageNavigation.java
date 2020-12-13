@@ -88,20 +88,28 @@ public class ImageNavigation
         opMode = op;
     }
 
-    public void init()
+    public void init(Boolean usingPhone)
     {
-        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-        com.vuforia.Vuforia VU = new com.vuforia.Vuforia();
-
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+
         VuforiaLocalizer.Parameters param = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         //com.vuforia.Vuforia.setInitParameters(null, 3, "");
         //CameraDevice.getInstance().setField("iso", "100");
         param.vuforiaLicenseKey = "AbYPrgD/////AAAAGbvKMH3NcEVFmPLgunQe4K0d1ZQi+afRLxricyooCq+sgY9Yh1j+bBrd0CdDCcoieA6trLCKBzymC515+Ps/FECtXv3+CTW6fg3/3+nvKZ6QA18h/cNZHg5HYHmghlcCgVUmSzOLRvdOpbS4S+0Y/sWGXwFK0PbuGPSN82w8XPDBoRYSWjAf8GXeitmNSlm9n4swrMoYNpMDuWCDjSm1kWnoErjFA9NuNoFzAgO+C/rYzoYjTJRk40ETVcAsahzatRlP7PJCvNNXiBhE6iVR+x7lFlTZ841xifOIOPkfVc54olC5XYe4A5ZmQ6WFD03W5HHdQrnmKPmkgcr1yqXAJ3rLTK8FZK3KVgbxz3Eeqps0";
         //param.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
         //param.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-        param.cameraName = webcamName; // set camera to webcam
         param.useExtendedTracking = false;
+
+        if (usingPhone == null) usingPhone = false;
+        if (!usingPhone) {
+            webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
+            param.cameraName = webcamName; // set camera to webcam
+        }
+        else {
+            param.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        }
+
+        com.vuforia.Vuforia VU = new com.vuforia.Vuforia();
         com.vuforia.Vuforia.setHint(HINT.HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 5);
 
         vuforia = ClassFactory.getInstance().createVuforia(param);

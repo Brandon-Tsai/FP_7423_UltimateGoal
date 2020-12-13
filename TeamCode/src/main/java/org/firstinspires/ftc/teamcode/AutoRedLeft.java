@@ -16,7 +16,7 @@ public class AutoRedLeft extends AutoBase {
         int ringType = 0;
 
         initialize();
-        imageNavigation.init();
+        imageNavigation.init(false);
 
         waitForStart();
 
