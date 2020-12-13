@@ -58,11 +58,11 @@ public class AutoRedLeft extends AutoBase {
 
         //shoot rings at powershot
 
-        if(ringType != 0) {
-            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
-            sleep(1000);
-            StrafeTo(0.8f, Direction.FORWARDLEFT, 20, -36);
-            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
-        }
+//        if(ringType != 0) {
+//            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+//            sleep(1000);
+//            StrafeTo(0.8f, Direction.FORWARDLEFT, 20, -36);
+//            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+//        }
     }
 }
