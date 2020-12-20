@@ -306,44 +306,6 @@ public abstract class AutoBase extends LinearOpMode {
         }
         StopAll();
     }
-
-    private float getRobotPowerFactor(float targetX, float targetY, OpenGLMatrix location, float angle) {
-        float deltaX = Math.abs(location.getColumn(3).get(0) / 25.4f - targetX);
-        float deltaY = Math.abs(location.getColumn(3).get(1) / 25.4f - targetY);
-        FieldDirection robotFacingDirection = FieldDirection.EAST;
-        float adjustAngle;
-        double theta;
-        double length;
-        double x;
-        double y;
-
-        if (angle > -45f && angle < 45f) {
-            robotFacingDirection = FieldDirection.EAST;
-            adjustAngle = angle;
-        }
-        else if (angle <= -45f && angle > - 135f) {
-            robotFacingDirection = FieldDirection.SOUTH;
-            adjustAngle = angle + 90;
-        }
-        else if (angle >= 45f && angle < 135f) {
-            robotFacingDirection = FieldDirection.NORTH;
-            adjustAngle = angle - 90;
-        }
-        else {
-            robotFacingDirection = FieldDirection.WEST;
-            adjustAngle = -angle;
-        }
-
-        theta = Math.atan2(deltaX, deltaY);
-        length = Math.sqrt(deltaX*deltaX+deltaY*deltaY);
-        x = length * Math.cos(theta);
-        y = length * Math.sin(theta);
-
-        double ratio = x/y;
-        Log.i("[phoenix:getRobotPower]", String.format("angle: %f, adjustAngle: %f, deltaX: %f, deltaY: %f, x: %f, y: %f", angle, adjustAngle, deltaX, deltaY, x, y));
-        return (float) Math.abs((1f-0.5f*ratio)/(0.5f*ratio+1f));
-    }
-
     public void StrafeTo(float power, Direction d, float targetX, float targetY){
         float frontLeftPower = 0;
         float frontRightPower = 0;
@@ -367,12 +329,9 @@ public abstract class AutoBase extends LinearOpMode {
                 float deltaX = currentX - targetX;
                 float deltaY = currentY - targetY;
                 float ratio = Math.abs(deltaX/deltaY);
-//                powerFactor = Math.abs((1f-0.5f*ratio)/(0.5f*ratio+1f));
+                powerFactor = Math.abs((1f-0.5f*ratio)/(0.5f*ratio+1f));
 
                 float angle = imu.getAngularOrientation().firstAngle;
-
-                powerFactor = getRobotPowerFactor(targetX, targetY, location, angle);
-
                 FieldDirection robotFacingDirection = FieldDirection.EAST;
                 if (angle > -45f && angle < 45f)
                     robotFacingDirection = FieldDirection.EAST;
