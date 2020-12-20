@@ -58,7 +58,7 @@ public abstract class AutoBase extends LinearOpMode {
     public static final String LABEL_SINGLE = "Single";
 
     public float PPR = 560F; //andymark gear ratio 40:1 (previously 280)
-    public float diameter = 3F; //changed for 3 inch wheel testing
+    public float diameter = 4F; //changed for 3 inch wheel testing
     public MyBoschIMU imu;
 
     public ImageNavigation imageNavigation;
@@ -73,8 +73,8 @@ public abstract class AutoBase extends LinearOpMode {
         fr = hardwareMap.dcMotor.get("frontright");
         bl = hardwareMap.dcMotor.get("backleft");
         br = hardwareMap.dcMotor.get("backright");
-        fl.setDirection(DcMotorSimple.Direction.REVERSE);
-        bl.setDirection(DcMotorSimple.Direction.REVERSE);
+        fr.setDirection(DcMotorSimple.Direction.REVERSE); //changed from fl to fr for WarnerBot
+        br.setDirection(DcMotorSimple.Direction.REVERSE); //changed from bl to br for WarnerBot
 
         imageNavigation = new ImageNavigation(hardwareMap, this);
 
@@ -133,6 +133,9 @@ public abstract class AutoBase extends LinearOpMode {
             op.telemetry.update();
             */
             int currentPosition = br.getCurrentPosition();
+
+            Log.i("[phoenix:currentPosS]", String.format("Current Position Strafe: %d", currentPosition));
+
 
             positionDiff = Math.abs(currentPosition - initialPosition); //changed encoder for test bot
             //Log.i("[Phoenix]:encoder #", Integer.toString(positionDiff));
@@ -240,7 +243,7 @@ public abstract class AutoBase extends LinearOpMode {
         while (currentPosition < targetEncoderValue && opModeIsActive()) {
 
             currentPosition = (Math.abs(br.getCurrentPosition()));
-            //Log.i("[Phoenix]:encoder #", Integer.toString(currentPosition));
+            Log.i("[phoenix:currentPosD]", String.format("Current Position Drive: %d", currentPosition));
             fl.setPower(power);
             fr.setPower(power);
             bl.setPower(power);
