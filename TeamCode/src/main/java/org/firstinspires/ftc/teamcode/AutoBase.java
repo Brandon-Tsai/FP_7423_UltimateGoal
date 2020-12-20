@@ -17,6 +17,7 @@ import com.vuforia.CameraDevice;
 import com.vuforia.HINT;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.matrices.MatrixF;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -306,6 +307,24 @@ public abstract class AutoBase extends LinearOpMode {
         }
         StopAll();
     }
+
+    private MatrixF getRotatedPosition(float targetX, float targetY, OpenGLMatrix robotLocation) {
+        float targetXFromRobot = targetX - robotLocation.getColumn(3).get(0) / 25.4f;
+        float targetYFromRobot = targetY - robotLocation.getColumn(3).get(1) / 25.4f;
+
+        MatrixF targetMatrix = OpenGLMatrix.identityMatrix().emptyMatrix(4, 1);
+        targetMatrix.put(0, 0, targetXFromRobot);
+        targetMatrix.put(1, 0, targetYFromRobot);
+        targetMatrix.put(2, 0, 0f);
+        targetMatrix.put(3, 0, 0f);
+        float rotationAngle = -90 + imu.getAngularOrientation().firstAngle;
+
+        OpenGLMatrix rotationMatrix = OpenGLMatrix.rotation(AxesReference.EXTRINSIC, AxesOrder.XZX, AngleUnit.DEGREES, 0, rotationAngle, 0);
+
+        MatrixF newMatrix = rotationMatrix.multiplied(targetMatrix);
+        return newMatrix;
+    }
+
     public void StrafeTo(float power, Direction d, float targetX, float targetY){
         float frontLeftPower = 0;
         float frontRightPower = 0;
@@ -326,8 +345,10 @@ public abstract class AutoBase extends LinearOpMode {
                 float currentX = location.getColumn(3).get(0) / 25.4f;
                 float currentY = location.getColumn(3).get(1) / 25.4f;
 
-                float deltaX = currentX - targetX;
-                float deltaY = currentY - targetY;
+                MatrixF rotatedPosition = getRotatedPosition(targetX, targetY, location);
+
+                float deltaX = rotatedPosition.getColumn(0).get(0);
+                float deltaY = rotatedPosition.getColumn(0).get(1);
                 float ratio = Math.abs(deltaX/deltaY);
                 powerFactor = Math.abs((1f-0.5f*ratio)/(0.5f*ratio+1f));
 
