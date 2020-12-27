@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 @Autonomous(name="Auto Red Left", group="none")
 
@@ -19,6 +20,7 @@ public class AutoRedLeft extends AutoBase {
         imageNavigation.init(false);
 
         waitForStart();
+
 
         long runTime = System.currentTimeMillis();
         while(System.currentTimeMillis() - runTime < 500){
@@ -52,7 +54,7 @@ public class AutoRedLeft extends AutoBase {
         sleep(1000);
         Log.i("[phoenix:startStrafe]", "Start Strafe");
 
-        StrafeTo(0.8f, Direction.BACKWARDLEFT, 12, -20);
+        StrafeTo(0.8f, Direction.BACKWARDLEFT, 12, -26);
 
         telemetry.update();
 
