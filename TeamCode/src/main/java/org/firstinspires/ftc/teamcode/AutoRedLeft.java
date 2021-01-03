@@ -54,17 +54,19 @@ public class AutoRedLeft extends AutoBase {
         sleep(1000);
         Log.i("[phoenix:startStrafe]", "Start Strafe");
 
-        StrafeTo(0.8f, Direction.BACKWARDLEFT, 12, -26);
+        StrafeTo(0.8f, Direction.BACKWARDLEFT, 0, 12, -20);
 
         telemetry.update();
 
         //shoot rings at powershot
 
-//        if(ringType != 0) {
-//            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
-//            sleep(1000);
-//            StrafeTo(0.8f, Direction.FORWARDLEFT, 20, -36);
-//            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
-//        }
+        if(ringType != 0) {
+            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+            sleep(1000);
+            StrafeTo(0.8f, Direction.FORWARDRIGHT, -90, 0, -24);
+            sleep(500);
+            StrafeTo(0.8f, Direction.FORWARDRIGHT, -80, -24, -30);
+            Log.i("[phoenix:finished]", "program finished");
+        }
     }
 }

@@ -101,16 +101,18 @@ public abstract class AutoBase extends LinearOpMode {
     }
 
     public void StopAll() {
+        Log.i("[phoenix:stopping", "stopping");
         fl.setPower(0);
         fr.setPower(0);
         bl.setPower(0);
         br.setPower(0);
+        Log.i("[phoenix:stopped", "stopped");
     }
 
     public void Strafe(float power, float distance, Direction d /*, OpMode op*/) {
 
-        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);//changed from bl for WarnerBot
-        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);//changed from bl for WarnerBot
+        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);//changed from br for WarnerBot
+        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);//changed from br for WarnerBot
 
         imu.resetAndStart(Direction.NONE);
 
@@ -123,7 +125,7 @@ public abstract class AutoBase extends LinearOpMode {
         if (d == Direction.LEFT)
             actualPower = -(power);
 
-        int initialPosition = bl.getCurrentPosition();//changed from bl for WarnerBot
+        int initialPosition = bl.getCurrentPosition();//changed from br for WarnerBot
         int positionDiff = 0;
 
         while (positionDiff < targetEncoderValue && this.opModeIsActive()) {
@@ -132,7 +134,7 @@ public abstract class AutoBase extends LinearOpMode {
             op.telemetry.addData("target:", targetEncoderValue);
             op.telemetry.update();
             */
-            int currentPosition = bl.getCurrentPosition();//changed from bl for WarnerBot
+            int currentPosition = bl.getCurrentPosition();//changed from br for WarnerBot
 
             Log.i("[phoenix:currentPosS]", String.format("Current Position Strafe: %d", currentPosition));
 
@@ -232,8 +234,8 @@ public abstract class AutoBase extends LinearOpMode {
         int targetEncoderValue = Math.round(x);
 
 
-        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);//changed from bl for WarnerBot
-        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);//changed from bl for WarnerBot
+        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);//changed from br for WarnerBot
+        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);//changed from br for WarnerBot
         int currentPosition = 0;
 
         if (d == Direction.BACKWARD) {
@@ -242,7 +244,7 @@ public abstract class AutoBase extends LinearOpMode {
 
         while (currentPosition < targetEncoderValue && opModeIsActive()) {
 
-            currentPosition = (Math.abs(bl.getCurrentPosition()));//changed from bl for WarnerBot
+            currentPosition = (Math.abs(bl.getCurrentPosition()));//changed from br for WarnerBot
             Log.i("[phoenix:currentPosD]", String.format("Current Position Drive: %d", currentPosition));
             fl.setPower(power);
             fr.setPower(power);
@@ -330,7 +332,7 @@ public abstract class AutoBase extends LinearOpMode {
         return newMatrix;
     }
 
-    public void StrafeTo(float power, Direction d, float targetX, float targetY){
+    public void StrafeTo(float power, Direction d, float targetAngle, float targetX, float targetY){
         float frontLeftPower = 0;
         float frontRightPower = 0;
         float backLeftPower = 0;
@@ -339,11 +341,11 @@ public abstract class AutoBase extends LinearOpMode {
         bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);//changed from br for WarnerBot
         bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);//changed from br for WarnerBot
 
-        float startingAngle = imu.getAngularOrientation().firstAngle;
         float angleModify = Math.abs(power) / 2f;
 
         float powerFactor = 0.33333333f;
-        while(Math.abs(br.getCurrentPosition()) < 8000 && opModeIsActive()){
+        boolean reached = false;
+        while(Math.abs(bl.getCurrentPosition()) < 8000 && opModeIsActive() && !reached){
             OpenGLMatrix location = imageNavigation.getRobotLocation();
 
             if(location != null){
@@ -355,11 +357,12 @@ public abstract class AutoBase extends LinearOpMode {
 
                 float deltaX = Math.abs(rotatedPosition.getColumn(0).get(0));
                 float deltaY = Math.abs(rotatedPosition.getColumn(0).get(1));
-                powerFactor = Math.abs((-0.5f*deltaY+deltaX)/(0.5f*deltaY+deltaX));
+                powerFactor = (-0.5f*deltaY+deltaX)/(0.5f*deltaY+deltaX);
                 Log.i("[phoenix:powerFactor]", String.format("Power Factor: %f", powerFactor));
 
 
                 float angle = imu.getAngularOrientation().firstAngle;
+                Log.i("[phoenix:angle]", String.format("angle:%f", angle));
                 FieldDirection robotFacingDirection = FieldDirection.EAST;
                 if (angle > -45f && angle < 45f)
                     robotFacingDirection = FieldDirection.EAST;
@@ -373,36 +376,50 @@ public abstract class AutoBase extends LinearOpMode {
                 Log.i("[phoenix:getDirection]", String.format("Direction:%s, FacingDirection:%s, currentX:%f, currentY:%f", d.toString(), robotFacingDirection.toString(), currentX, currentY));
 
                 if(d == Direction.FORWARDRIGHT){
-
+                    if(robotFacingDirection == FieldDirection.EAST && (currentY <= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY >= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY >= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY <= targetY && currentX <= targetX)){
+                        reached = true;
+                    }
                 }
                 else if(d == Direction.FORWARDLEFT){
-                    if(robotFacingDirection == FieldDirection.EAST && (currentY >= targetY || currentX >= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY <= targetY || currentX <= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY >= targetY || currentX <= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY <= targetY || currentX >= targetX)){
-                        break;
+                    if(robotFacingDirection == FieldDirection.EAST && (currentY >= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY <= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY >= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY <= targetY && currentX >= targetX)){
+                        reached = true;
                     }
                 }
                 else if(d == Direction.BACKWARDRIGHT){
-                    if(currentY >= targetY && currentX <= targetX){
-                        break;
+                    if(robotFacingDirection == FieldDirection.EAST && (currentY <= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY >= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY <= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY >= targetY && currentX <= targetX)){
+                        reached = true;
                     }
                 }
                 else if(d == Direction.BACKWARDLEFT){
-                    if(robotFacingDirection == FieldDirection.EAST && (currentY >= targetY || currentX <= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY <= targetY || currentX >= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY <= targetY || currentX <= targetX)){
-                        break;
-                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY >= targetY || currentX >= targetX)){
-                        break;
+                    if(robotFacingDirection == FieldDirection.EAST && (currentY >= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.WEST && (currentY <= targetY && currentX >= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.NORTH && (currentY <= targetY && currentX <= targetX)){
+                        reached = true;
+                    } else if(robotFacingDirection == FieldDirection.SOUTH && (currentY >= targetY && currentX >= targetX)){
+                        reached = true;
                     }
                 }
-
+                Log.i("[phoenix:faceDirection]", String.format("FacingDirection:%s", robotFacingDirection.toString()));
 
             }
             else{
@@ -444,11 +461,11 @@ public abstract class AutoBase extends LinearOpMode {
             float blPower = backLeftPower;
             float brPower = backRightPower;
 
-            if (currentAngle - startingAngle >= 2){
+            if (currentAngle - targetAngle >= 2){
                 flPower += angleModify;
                 frPower -= angleModify;
             }
-            else if(currentAngle - startingAngle <= -2){
+            else if(currentAngle - targetAngle <= -2){
                 blPower -= angleModify;
                 brPower += angleModify;
             }
@@ -458,10 +475,42 @@ public abstract class AutoBase extends LinearOpMode {
             if (max < 1)
                 max = 1;
 
-            fl.setPower(flPower / max);
-            fr.setPower(frPower / max);
-            bl.setPower(blPower / max);
-            br.setPower(brPower / max);
+            flPower /= max;
+            frPower /= max;
+            blPower /= max;
+            brPower /= max;
+
+            if(Math.abs(flPower) > 1){
+                flPower = Math.round(flPower);
+            }
+            if(Math.abs(frPower) > 1){
+                frPower = Math.round(frPower);
+            }
+            if(Math.abs(blPower) > 1){
+                blPower = Math.round(blPower);
+            }
+            if(Math.abs(brPower) > 1){
+                brPower = Math.round(brPower);
+            }
+
+            Log.i("[phoenix:powers]", String.format("flpower:%f, frpower:%f, blpower:%f, brpower:%f, max:%f", flPower, frPower, blPower, brPower, max));
+
+            if(!reached) {
+                try {
+                    fl.setPower(flPower);
+                    fr.setPower(frPower);
+                    bl.setPower(blPower);
+                    br.setPower(brPower);
+                }
+                catch (Exception ex){
+                    Log.i("[phoenix:catchError]", ex.getMessage());
+                }
+
+                Log.i("[phoenix:powersInIf]", String.format("flpower:%f, frpower:%f, blpower:%f, brpower:%f, max:%f", flPower, frPower, blPower, brPower, max));
+
+            }
+            else
+                StopAll();
         }
 
         StopAll();
