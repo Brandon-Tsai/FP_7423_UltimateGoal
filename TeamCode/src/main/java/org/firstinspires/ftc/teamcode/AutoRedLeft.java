@@ -61,11 +61,18 @@ public class AutoRedLeft extends AutoBase {
         //shoot rings at powershot
 
         if(ringType != 0) {
-            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
             sleep(1000);
-            StrafeTo(0.8f, Direction.FORWARDRIGHT, -90, 0, -24);
-            sleep(500);
-            StrafeTo(0.8f, Direction.FORWARDRIGHT, -80, -24, -30);
+            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+            Drive(0.6f, 12, Direction.FORWARD);
+            sleep(1000);
+            StrafeTo(0.8f, Direction.FORWARDRIGHT, -90, 0, -36);
+            sleep(200);
+            Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+            Drive(0.6f, 24, Direction.FORWARD);
+            //collect rigns
+            Turn(0.5f, 180, Direction.COUNTERCLOCKWISE, imu, this);
+            Drive(0.6f, 24, Direction.FORWARD);
+            //shoot at goal
             Log.i("[phoenix:finished]", "program finished");
         }
     }
