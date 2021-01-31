@@ -53,6 +53,9 @@ public abstract class AutoBase extends LinearOpMode {
     public DcMotor bl;
     public DcMotor br;
 
+    public DcMotor shooter;
+    public Servo ramp;
+
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     public static final String LABEL_QUAD = "Quad";
     public static final String LABEL_SINGLE = "Single";
@@ -75,6 +78,8 @@ public abstract class AutoBase extends LinearOpMode {
         br = hardwareMap.dcMotor.get("backright");
         fr.setDirection(DcMotorSimple.Direction.REVERSE); //changed from fl to fr for WarnerBot
         br.setDirection(DcMotorSimple.Direction.REVERSE); //changed from bl to br for WarnerBot
+
+        shooter = hardwareMap.dcMotor.get("shooter");
 
         imageNavigation = new ImageNavigation(hardwareMap, this);
 
@@ -601,6 +606,20 @@ public abstract class AutoBase extends LinearOpMode {
         fr.setPower(0);
         bl.setPower(0);
         br.setPower(0);
+    }
+
+    public void Shoot(int target){
+        shooter.setPower(1);
+        switch(target){
+            case 1: //powershot target
+                ramp.setPosition(0); //0 placeholder (degrees: 20.97)
+            case 2: //top goal
+                ramp.setPosition(0); //0 placeholder (degrees: 30.25)
+            case 3:
+                ramp.setPosition(0); //0 placeholder (degrees: 24.23)
+            case 4:
+                ramp.setPosition(0); //0 placeholder (degrees: 15.82)
+        }
     }
 }
 

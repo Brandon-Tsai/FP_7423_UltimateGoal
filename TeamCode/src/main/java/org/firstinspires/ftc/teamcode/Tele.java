@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -13,6 +14,11 @@ public class Tele extends OpMode {
     DcMotor fl;
     DcMotor br;
     DcMotor bl;
+
+    DcMotor shooter;
+    Servo ramp;
+
+    DcMotor intake;
 
     float x1, x2, y1, y2;
 
@@ -71,6 +77,27 @@ public class Tele extends OpMode {
         if (joystickRightDistance < 0.9)
         {
             x2 = x2/2;
+        }
+
+        if(gamepad2.dpad_left){
+            ramp.setPosition(0); //0 placeholder (degrees: 20.97)
+        }
+        if(gamepad2.dpad_up){
+            ramp.setPosition(0); //0 placeholder (degrees: 30.25)
+        }
+        if(gamepad2.dpad_right){
+            ramp.setPosition(0); //0 placeholder (degrees: 24.23)
+        }
+        if(gamepad2.dpad_down){
+            ramp.setPosition(0); //0 placeholder (degrees: 15.82)
+        }
+
+        if(gamepad2.right_trigger > 0.2){
+            shooter.setPower(1);
+        }
+
+        if(gamepad1.right_trigger > 0.2){
+            intake.setPower(1);
         }
     }
 }
