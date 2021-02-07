@@ -59,6 +59,11 @@ public class AutoRedLeft extends AutoBase {
         telemetry.update();
 
         //shoot rings at powershot
+        ramp(1);
+        elevate(1);
+        sleep(500);
+        shooter.setPower(0);
+        elevate(0);
 
         if(ringType != 0) {
             sleep(1000);
@@ -68,11 +73,24 @@ public class AutoRedLeft extends AutoBase {
             StrafeTo(0.8f, Direction.FORWARDRIGHT, -90, 0, -36);
             sleep(200);
             Turn(0.5f, 90, Direction.CLOCKWISE, imu, this);
+
+            intake.setPower(1);//or -1
+            transfer.setPower(1);//or -1
             Drive(0.6f, 24, Direction.FORWARD);
             //collect rigns
+            sleep(1000);
+            intake.setPower(0);
+            transfer.setPower(0);
+
             Turn(0.5f, 180, Direction.COUNTERCLOCKWISE, imu, this);
             Drive(0.6f, 24, Direction.FORWARD);
             //shoot at goal
+            ramp(2);
+            elevate(3);
+            sleep(500);
+            shooter.setPower(0);
+            elevate(0);
+
             Log.i("[phoenix:finished]", "program finished");
         }
     }

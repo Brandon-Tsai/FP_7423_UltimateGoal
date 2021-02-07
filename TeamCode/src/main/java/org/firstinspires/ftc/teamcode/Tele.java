@@ -19,6 +19,10 @@ public class Tele extends OpMode {
     Servo ramp;
 
     DcMotor intake;
+    DcMotor transfer;
+
+    Servo elevator;
+    public int level = 0;
 
     float x1, x2, y1, y2;
 
@@ -96,8 +100,51 @@ public class Tele extends OpMode {
             shooter.setPower(1);
         }
 
-        if(gamepad1.right_trigger > 0.2){
+        if(gamepad1.right_trigger > 0.2){ //in
             intake.setPower(1);
+            transfer.setPower(1);
+        }
+        if(gamepad1.right_bumper){//out
+            intake.setPower(-1);
+            transfer.setPower(-1);
+        }
+
+        if(gamepad2.left_trigger > 0.8){
+            boolean keepGoing = true;
+            switch(level){
+                case 0:
+                    if(elevator.getPosition() != 0)
+                        keepGoing = false;
+                case 1:
+                    if(elevator.getPosition() != 0.5)
+                        keepGoing = false;
+                case 2:
+                    if(elevator.getPosition() != 0.75)
+                        keepGoing = false;
+                case 3:
+                    if(elevator.getPosition() != 1)
+                        keepGoing = false;
+            }
+
+            if (keepGoing)
+                elevate();
+        }
+    }
+
+    public void elevate(){
+        level++;
+        if(level > 3)
+            level = 0;
+
+        switch(level){
+            case 0:
+                elevator.setPosition(0);//bottom elevator position
+            case 1:
+                elevator.setPosition(0.5);//shoot first ring
+            case 2:
+                elevator.setPosition(0.75);//shoot second ring
+            case 3:
+                elevator.setPosition(1);//shoot third ring
         }
     }
 }

@@ -56,6 +56,11 @@ public abstract class AutoBase extends LinearOpMode {
     public DcMotor shooter;
     public Servo ramp;
 
+    public DcMotor intake;
+    public DcMotor transfer;
+
+    public Servo elevator;
+
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     public static final String LABEL_QUAD = "Quad";
     public static final String LABEL_SINGLE = "Single";
@@ -608,17 +613,32 @@ public abstract class AutoBase extends LinearOpMode {
         br.setPower(0);
     }
 
-    public void Shoot(int target){
+    public void ramp(int target) {
         shooter.setPower(1);
-        switch(target){
+        switch (target) {
             case 1: //powershot target
                 ramp.setPosition(0); //0 placeholder (degrees: 20.97)
             case 2: //top goal
                 ramp.setPosition(0); //0 placeholder (degrees: 30.25)
-            case 3:
+            case 3: //middle goal
                 ramp.setPosition(0); //0 placeholder (degrees: 24.23)
-            case 4:
+            case 4: //bottom goal
                 ramp.setPosition(0); //0 placeholder (degrees: 15.82)
+        }
+    }
+
+    public void elevate(int rings){
+        switch(rings){
+            case 0:
+                elevator.setPosition(0); //bottom of elevator
+            case 1:
+                elevator.setPosition(0.5); //only shoot one ring position
+            case 3:
+                elevator.setPosition(0.5);//shoot first ring
+                sleep(150);
+                elevator.setPosition(0.75);//shoot second ring
+                sleep(150);
+                elevator.setPosition(1);//shoot third ring
         }
     }
 }
